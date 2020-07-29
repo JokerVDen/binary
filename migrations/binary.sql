@@ -1,4 +1,4 @@
-create table binar
+create table `binary`
 (
     id        int auto_increment
         primary key,
@@ -8,5 +8,7 @@ create table binar
     level     int            not null
 );
 
-create index binar__path_index
-    on binar (path);
+create index binary__path_index
+    on `binary` (path);
+
+INSERT INTO `binary` (parent_id, position, path, level) VALUES (null, null, '1', 1);
