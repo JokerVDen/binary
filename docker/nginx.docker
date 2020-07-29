@@ -1,0 +1,9 @@
+FROM nginx:alpine
+
+ADD ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+
+ARG DOMAIN_NAME
+
+RUN grep -lr -e "_DOMAIN_NAME_" /etc/nginx/conf.d/default.conf | xargs sed -i "s/_DOMAIN_NAME_/$DOMAIN_NAME/g"
+
+WORKDIR /var/www

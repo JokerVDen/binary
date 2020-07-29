@@ -1,0 +1,46 @@
+version: '3.7'
+services:
+  nginx:
+    build:
+      context: ./
+      dockerfile: ./docker/nginx.docker
+      args:
+        DOMAIN_NAME: ${DOCKER_NGINX_DOMAIN_NAME}
+    depends_on:
+      - php-fpm
+    volumes:
+      - ./:/var/www
+      - ./docker/tmp/nginx:/var/log/nginx
+    ports:
+      - "${HTTP_PORT_DOCKER}:${HTTP_PORT}"
+  php-fpm:
+    build:
+      context: ./
+      dockerfile: ./docker/php-fpm.docker
+    volumes:
+      - ./:/var/www
+      - ./docker/php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+      - ./docker/php/phpSettings.conf:/usr/local/etc/php-fpm.d/zzz-phpSettings.conf
+      - ./docker/tmp/php/error.log:/var/log/error.log
+      - ./docker/tmp/php/access.log:/var/log/access.log
+    working_dir: /var/www
+    user: "${LINUX_UID}:${LINUX_GID}"
+    environment:
+      DB_PORT: ${DB_PORT}
+      DB_HOST: ${DB_HOST}
+  mariadb:
+    image: mariadb:10.5
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    logging:
+      options:
+        tag: "{{.DaemonName}}(image={{.ImageName}};name={{.Name}};id={{.ID}})"
+    user: "${LINUX_UID}:${LINUX_GID}"
+    ports:
+      - "${DB_PORT_DOCKER}:${DB_PORT}"
+    volumes:
+      - ./docker/tmp/mysql:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d
