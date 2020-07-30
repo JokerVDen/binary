@@ -1,14 +1,14 @@
 <?php
 
 
-namespace App\Components\Binary\Cells;
+namespace App\Services\Binary;
 
 
-use App\Components\Binary\Dto\CellDto;
-use App\Components\Binary\Repositories\BinaryRepository;
+use App\Dto\Binary\CellDto;
+use App\Repositories\Binary\BinaryRepository;
 use LogicException;
 
-class BinaryCell
+class BinaryCellFactory
 {
     /**
      * @var BinaryRepository
@@ -27,6 +27,7 @@ class BinaryCell
     /**
      * @param int $parentId
      * @param int $position
+     * @return CellDto
      */
     public function create(int $parentId, int $position)
     {
@@ -34,13 +35,15 @@ class BinaryCell
 
         $this->checkParent($parent, $parentId);
 
-        $children = $this->repository->getAllByPath($parent->path);
+        $children = $this->repository->getAllByParentId($parent->id);
 
         $this->checkPosition($children, $position);
 
         $newCell = $this->prepareCell($parent, $position);
 
         $this->insertCell($newCell, $parent);
+
+        return $newCell;
     }
 
 
@@ -68,7 +71,7 @@ class BinaryCell
         if ($children) {
             foreach ($children as $child) {
                 if ($child->position == $position) {
-                    throw new LogicException("Эта позиция уже занята [{$position}]");
+                    throw new LogicException("Эта позиция уже занята [родитель = {$child->parent_id}, позиция = {$position}]");
                 }
             }
         }
@@ -98,6 +101,9 @@ class BinaryCell
     {
         $id = $this->repository->insertCell($newCell);
 
-        $this->repository->updatePath($id, $parent->path . '.' . $id);
+        $newCell->id = $id;
+        $newCell->parent_id = $parent->path . '.' . $id;
+
+        $this->repository->updatePath($id, $newCell->parent_id);
     }
 }

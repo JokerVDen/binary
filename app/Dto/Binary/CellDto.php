@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\Components\Binary\Dto;
+namespace App\Dto\Binary;
 
 
 class CellDto

@@ -1,10 +1,10 @@
 <?php
 
 
-namespace App\Components\Binary\Repositories;
+namespace App\Repositories\Binary;
 
 
-use App\Components\Binary\Dto\CellDto;
+use App\Dto\Binary\CellDto;
 use App\DB\DB;
 use PDO;
 
@@ -86,5 +86,62 @@ class BinaryRepository
         $sql = "UPDATE `binary` SET path = :path WHERE id = :id";
 
         $this->db->prepare($sql)->execute($data);
+    }
+
+    /**
+     * @return CellDto|bool
+     */
+    public function getFirst()
+    {
+        $sql = 'SELECT * FROM `binary` LIMIT 1';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+
+        return $stmt->fetchObject(CellDto::class);
+    }
+
+    /**
+     * @param int $parentId
+     * @return CellDto[]|bool
+     */
+    public function getAllByParentId(int $parentId)
+    {
+        $data = [
+            'parent_id' => $parentId,
+        ];
+        $sql = 'SELECT * FROM `binary` WHERE parent_id = :parent_id';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($data);
+
+        return $stmt->fetchAll(PDO::FETCH_CLASS, CellDto::class);
+    }
+
+    /**
+     * @param array $parentIds
+     * @return CellDto[]
+     */
+    public function getByIds(array $parentIds)
+    {
+        $sql = 'SELECT * FROM `binary` WHERE id IN ('.implode(', ', $parentIds).')';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_CLASS, CellDto::class);
+    }
+
+    /**
+     * @return CellDto[]
+     */
+    public function getAll()
+    {
+        $sql = 'SELECT * FROM `binary`';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_CLASS, CellDto::class);
     }
 }
